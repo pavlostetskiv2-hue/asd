@@ -1,1 +1,87 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Casual Style Console</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f4; text-align: center; margin: 0; padding: 20px; }
+        h1 { color: #333; margin-bottom: 10px; }
+        .status-bar { font-size: 0.8em; color: #666; margin-bottom: 15px; }
+        .container { background: white; max-width: 500px; margin: 0 auto; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .search-group { display: flex; gap: 10px; margin-bottom: 20px; }
+        input { flex-grow: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px; outline: none; }
+        button { padding: 10px 15px; background: #5cb85c; color: white; border: none; border-radius: 4px; cursor: pointer; transition: 0.2s; }
+        button:hover { background: #4cae4c; }
+        #results { text-align: left; }
+        .log-entry { border-bottom: 1px solid #eee; padding: 10px 0; animation: fadeIn 0.3s ease-in; }
+        .log-entry:last-child { border-bottom: none; }
+        .player-name { font-weight: bold; color: #2a6496; }
+        .timestamp { font-size: 0.85em; color: #888; display: block; margin-top: 3px; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        .error-box { color: #d9534f; border: 1px solid #d9534f; padding: 10px; border-radius: 4px; background: #fdf7f7; }
+        .warning-box { color: #8a6d3b; border: 1px solid #faebcc; padding: 10px; border-radius: 4px; background: #fcf8e3; }
+    </style>
+</head>
+<body>
+    <h1>Консоль Логов</h1>
+    <div id="last-update" class="status-bar">Ожидание запуска...</div>
 
+    <div class="container">
+        <div class="search-group">
+            <input type="text" id="search" placeholder="Ник игрока..." onkeypress="if(event.key === 'Enter') loadLogs()">
+            <button onclick="loadLogs()">Найти</button>
+        </div>
+        <div id="results"></div>
+    </div>
+    
+    <script>
+        async function loadLogs() {
+            const query = document.getElementById('search').value.trim().toLowerCase();
+            const resDiv = document.getElementById('results');
+            const statusDiv = document.getElementById('last-update');
+            
+            try {
+                const response = await fetch('logs.json?t=' + new Date().getTime());
+                
+                if (!response.ok) {
+                    throw new Error(response.status === 404 ? "Файл logs.json не найден!" : "Ошибка сервера: " + response.status);
+                }
+
+                const logs = await response.json();
+                statusDiv.innerText = "Последнее обновление базы: " + new Date().toLocaleTimeString();
+
+                if (!Array.isArray(logs) || logs.length === 0) {
+                    resDiv.innerHTML = "<div class='warning-box'>База логов пуста.</div>";
+                    return;
+                }
+
+                const filtered = logs.filter(item => 
+                    item.player && item.player.toLowerCase().includes(query)
+                );
+                
+                if (filtered.length > 0) {
+                    resDiv.innerHTML = `<p style="color: #999; font-size: 0.8em; margin-bottom: 10px;">Найдено ${filtered.length} из ${logs.length} записей:</p>` + 
+                        filtered.map(i => `
+                            <div class="log-entry">
+                                <span class="player-name">${i.player}</span>: ${i.action}
+                                <span class="timestamp">🕒 ${i.timestamp}</span>
+                            </div>`).join('');
+                } else {
+                    resDiv.innerHTML = `<div class='warning-box'>Ник <b>${query}</b> не найден в последних ${logs.length} логах.</div>`;
+                }
+            } catch (e) {
+                resDiv.innerHTML = `<div class='error-box'><b>Ошибка:</b><br>${e.message}</div>`;
+            }
+        }
+
+        // Запустить поиск при загрузке страницы
+        loadLogs();
+
+        // Авто-обновление каждые 30 секунд
+        setInterval(() => {
+            console.log("Фоновое обновление логов...");
+            loadLogs();
+        }, 30000);
+    </script>
+</body>
+</html>
