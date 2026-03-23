@@ -1,6 +1,11 @@
 [
   {
     "player": "PavelDIPF",
+    "action": "No action",
+    "timestamp": "23.03.2026, 03:33:29"
+  },
+  {
+    "player": "PavelDIPF",
     "action": "Игрок зашел в игру",
     "timestamp": "23.03.2026, 03:32:42"
   },
