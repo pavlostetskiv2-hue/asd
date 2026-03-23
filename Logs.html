@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Casual Style [Logs]</title>
+    <title>Casual Style Logs</title>
     <style>
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
@@ -12,7 +12,6 @@
             margin: 0; 
             padding: 20px; 
         }
-
         h1 { 
             color: #ffffff;
             margin-bottom: 10px; 
@@ -63,11 +62,9 @@
         button:hover { 
             background: #5cb85c; 
         }
-
         #results { 
             text-align: left; 
         }
-
         .log-entry { 
             border-bottom: 1px solid #333;
             padding: 12px 0; 
@@ -135,14 +132,18 @@
                 }
                 const filtered = logs.filter(item => 
                     item.player && item.player.toLowerCase().includes(query)
-                );
+                ).reverse();
+                
                 if (filtered.length > 0) {
                     resDiv.innerHTML = `<p style="color: #888; font-size: 0.8em; margin-bottom: 15px;">Найдено ${filtered.length} из ${logs.length} записей:</p>` + 
-                        filtered.map(i => `
-                            <div class="log-entry">
-                                <span class="player-name">${i.player}</span>: ${i.action}
-                                <span class="timestamp">🕒 ${i.timestamp}</span>
-                            </div>`).join('');
+                        filtered.map(i => {
+                            const actionText = i.action || i.message || "No action";
+                            return `
+                                <div class="log-entry">
+                                    <span class="player-name">${i.player}</span>: ${actionText}
+                                    <span class="timestamp">🕒 ${i.timestamp}</span>
+                                </div>`;
+                        }).join('');
                 } else {
                     resDiv.innerHTML = `<div class='warning-box'>Ник <b>${query}</b> не найден.</div>`;
                 }
@@ -151,10 +152,7 @@
             }
         }
         loadLogs();
-        setInterval(() => {
-            console.log("Обновление...");
-            loadLogs();
-        }, 30000);
+        setInterval(loadLogs, 10000);
     </script>
 </body>
 </html>
